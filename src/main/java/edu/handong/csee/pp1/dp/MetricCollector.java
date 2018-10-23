@@ -43,7 +43,7 @@ public class MetricCollector {
 		for(File file:javaFiles) {
 			
 			// 소스코드에서 메트릭을 계산해서 만들어야 하기 때문에,
-			// 파일 목록에 있는 JAva 소스코드 파일을 하나씩 읽어서 String으로 저장.
+			// 파일 목록에 있는 Java 소스코드 파일을 하나씩 읽어서 String으로 저장.
 			String sourceCode = Utils.readAFile(file.getPath());
 			
 			// 문법대로 작성된 소스코드 파일을 자바 코드를 구성하는 단위 별로 분석하는 Parser를 실행해서
@@ -99,17 +99,17 @@ public class MetricCollector {
 	
 	private int computeNumOfMethodInvocations(JavaASTParser codeAST) {
 		// TASK1 TODO codeAST에서 매소드 호출된 개수를 가져온다.
-		return 0;
+		return codeAST.getMethodInvocations().size();
 	}
 	
 	private int computeNumOfForLoops(JavaASTParser codeAST) {
 		// TASK1 TODO codeAST에서 for loop의 개수를 가져온다.
-		return 0;
+		return codeAST.getForStatements().size();
 	}
 	
 	private int computeNumOfIfStatements(JavaASTParser codeAST) {
 		// TASK1 TODO codeAST에서 if문의 개수를 가져온다.
-		return 0;
+		return codeAST.getIfStatements().size();
 	}
 	
 	public void saveAnArffFile() {

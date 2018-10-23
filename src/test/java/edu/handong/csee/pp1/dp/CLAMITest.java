@@ -80,12 +80,21 @@ public class CLAMITest {
 	public void testCLAMIWithApacheProjectToFindBestCutoffForPrecision() {
 		
 		// TASK5 TODO Use this method to find the best cutoff
-		
-		String bestCutoff = "82";
-		
-		String[] args = {"-f","data/Apache.arff","-l","isDefective","-p", "TRUE", "-m", "-c", bestCutoff};
-
-		CLAMI.main(args);
+		String bestCutoff;
+		for(int i = 98; i <= 100; i++) {
+			
+			bestCutoff = Integer.toString(i);
+			
+			System.out.println("cutOff: " + i);
+			String[] args = {"-f","data/Apache.arff","-l","isDefective","-p", "TRUE", "-m", "-c", bestCutoff};
+			CLAMI.main(args);
+			
+		}
+//		String bestCutoff = "82";
+//		
+//		String[] args = {"-f","data/Apache.arff","-l","isDefective","-p", "TRUE", "-m", "-c", bestCutoff};
+//
+//		CLAMI.main(args);
 	}
 	
 	@Test

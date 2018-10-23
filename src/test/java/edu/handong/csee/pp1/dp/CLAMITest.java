@@ -55,14 +55,25 @@ public class CLAMITest {
 	}
 	
 	@Test
-	public void testCLAMIWithYourSelectedProject() {
+	public void testCLAMIWithGsonProject() {
 		
 		// TASK3: Conduct defect prediction by using CLAMI models
 		// complete this test case for the generated arff files from Task 2
 		
-		//String[] args = {"-f","data/[your_generated_metric_data].arff","-l","label","-p", "buggy", "-m"};
+		String[] args = {"-f","data/gson.arff","-l","label","-p", "buggy", "-m"};
 		
-		//CLAMI.main(args);
+		CLAMI.main(args);
+	}
+	
+	@Test
+	public void testCLAMIWithJesqueProject() {
+		
+		// TASK3: Conduct defect prediction by using CLAMI models
+		// complete this test case for the generated arff files from Task 2
+		
+		String[] args = {"-f","data/jesque.arff","-l","label","-p", "buggy", "-m"};
+		
+		CLAMI.main(args);
 	}
 	
 	@Test

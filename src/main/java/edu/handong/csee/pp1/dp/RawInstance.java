@@ -4,13 +4,15 @@ public class RawInstance {
 	
 	String javaFilePath;
 	
-	static public final int NUMMETRICS = 6;
+	static public final int NUMMETRICS = 8;
 	// 인스턴스의 메트릭 값을 저장하는 field들.
 	int[] values = new int[NUMMETRICS];
 	
 	int linesOfCode;
 	int numOfVariables;
+	int numOfInstanaceVariables;
 	int numOfMethods;
+	int numOfPublicMethods;
 	int numOfMethodInvocation;
 	int numOfForLoops;
 	int numOfIfStatements;
@@ -47,33 +49,50 @@ public class RawInstance {
 		values[1] = numOfVariables;
 	}
 	
-	public int getNumOfMethods() {
+	public int getNumOfInstanceVariables() {
 		return values[2];
+	}
+	
+	public void setNumOfInstanceVariables(int numOfInstanceVariables) {
+		values[2] = numOfInstanceVariables;
+	}
+	
+	public int getNumOfMethods() {
+		return values[3];
 	}
 
 	public void setNumOfMethods(int numOfMethods) {
-		values[2] = numOfMethods;
-	}
-	public int getNumOfMethodInvocation() {
-		return values[3];
+		values[3] = numOfMethods;
 	}
 	
-	public void setNumOfMethodInvocations(int numOfMethodInvocation) {
-		values[3] = numOfMethodInvocation;
-	}
-	public int getNumOfForLoops() {
+	public int getNumOfPublicMethods() {
 		return values[4];
 	}
 	
-	public void setNumOfForLoops(int numOfForLoops) {
-		values[4] = numOfForLoops;
+	public void setNumOfPublicMethods(int numOfPublicMethods) {
+		values[4] = numOfPublicMethods;
 	}
 	
-	public int getNumOfIfStatements() {
+	public int getNumOfMethodInvocation() {
 		return values[5];
 	}
 	
+	public void setNumOfMethodInvocations(int numOfMethodInvocation) {
+		values[5] = numOfMethodInvocation;
+	}
+	public int getNumOfForLoops() {
+		return values[6];
+	}
+	
+	public void setNumOfForLoops(int numOfForLoops) {
+		values[6] = numOfForLoops;
+	}
+	
+	public int getNumOfIfStatements() {
+		return values[7];
+	}
+	
 	public void setNumOfIfStatements(int numOfIfStatements) {
-		values[5] = numOfIfStatements;
+		values[7] = numOfIfStatements;
 	}
 }

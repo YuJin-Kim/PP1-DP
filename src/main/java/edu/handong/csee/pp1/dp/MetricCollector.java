@@ -65,8 +65,12 @@ public class MetricCollector {
 			// (2) 두번째 메트릭 계산: 파일 안에 있는 변수의 개수
 			instance.setNumOfVariables(computeNumOfVariables(codeAST));
 			
+			instance.setNumOfInstanceVariables(computeNumOfInstanceVariables(codeAST));
+			
 			// (3) 세번째 메트릭 계산: 파일 안에 있는 매소드의 개수
 			instance.setNumOfMethods(computeNumOfMethods(codeAST));
+			
+			instance.setNumOfPublicMethods(computeNumOfPublicMethods(codeAST));
 			
 			// (4) 네번째 메트릭 계산: 메소드 호출 개수 (method invocation)
 			instance.setNumOfMethodInvocations(computeNumOfMethodInvocations(codeAST));
@@ -87,14 +91,21 @@ public class MetricCollector {
 	}
 	
 	private int computeNumOfVariables(JavaASTParser codeAST) {
-		
 		// codeAST에서 변수선언된 요소들을 가져오고 몇 개나 있는지 크기를 가져온다.
 		return codeAST.getVariableDeclarationFragments().size();
+	}
+	
+	private int computeNumOfInstanceVariables(JavaASTParser codeAST) {
+		return codeAST.getInstanceVariables().size();
 	}
 	
 	private int computeNumOfMethods(JavaASTParser codeAST) {
 		// codeAST에서 매소드가 선언된 개수를 가져온다.
 		return codeAST.getMethodDeclarations().size();
+	}
+	
+	private int computeNumOfPublicMethods(JavaASTParser codeAST) {
+		return codeAST.getPublicMethodDeclarations().size();
 	}
 	
 	private int computeNumOfMethodInvocations(JavaASTParser codeAST) {

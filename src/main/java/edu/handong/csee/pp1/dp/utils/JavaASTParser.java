@@ -1,5 +1,6 @@
 package edu.handong.csee.pp1.dp.utils;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,8 +14,10 @@ public class JavaASTParser {
 	String source;
 	ArrayList<ImportDeclaration> lstImportDeclaration = new ArrayList<ImportDeclaration>();
 	ArrayList<MethodDeclaration> lstMethodDeclaration = new ArrayList<MethodDeclaration>();
+	ArrayList<MethodDeclaration> lstPublicMethodDeclaration = new ArrayList<MethodDeclaration>();
 	ArrayList<MethodInvocation> lstMethodInvocation = new ArrayList<MethodInvocation>();
 	ArrayList<FieldDeclaration> lstFieldDeclaration = new ArrayList<FieldDeclaration>();
+	ArrayList<FieldDeclaration> lstInstanceVariable = new ArrayList<FieldDeclaration>();
 	ArrayList<FieldAccess> lstFieldAccess = new ArrayList<FieldAccess>();
 	ArrayList<IfStatement> lstIfStatement = new ArrayList<IfStatement>();
 	ArrayList<ForStatement> lstForStatement = new ArrayList<ForStatement>();
@@ -26,15 +29,15 @@ public class JavaASTParser {
 	ArrayList<TypeDeclaration> lstTypeDeclaration = new ArrayList<TypeDeclaration>();
 	ArrayList<InfixExpression> lstInfixExpression = new ArrayList<InfixExpression>();
 	ArrayList<ConditionalExpression> lstConditionalExpression = new ArrayList<ConditionalExpression>();
-	
-	
+
+
 	PackageDeclaration pkgDeclaration;
 
 	public JavaASTParser(String source){
 		this.source = source;
 		praseJavaFile(source);
 	}
-	
+
 	public int getLineNum(int startPosition){
 		return cUnit.getLineNumber(startPosition);
 	}
@@ -77,15 +80,21 @@ public class JavaASTParser {
 				unit.accept(new ASTVisitor() {
 
 					public boolean visit(MethodDeclaration node) {
+						for(Object element : node.modifiers()) {
+							IExtendedModifier modifier = (IExtendedModifier)element;
+							if(modifier.isModifier() && modifier.toString().equals("public"))
+								lstPublicMethodDeclaration.add(node);
+						}
+						
 						lstMethodDeclaration.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(MethodInvocation node) {
 						lstMethodInvocation.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(TypeDeclaration node) {
 						lstTypeDeclaration.add(node);
 						return super.visit(node);
@@ -93,24 +102,34 @@ public class JavaASTParser {
 
 					public boolean visit(final FieldDeclaration node) {
 						lstFieldDeclaration.add(node);
+						
+						for(Object element : node.modifiers()) {
+							IExtendedModifier modifier = (IExtendedModifier)element;
+							if(modifier.isModifier()) {
+								if(modifier.toString().equals("static")) return super.visit(node);
+								else continue;
+							}
+						}
+						
+						lstInstanceVariable.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final SingleVariableDeclaration node) {
 						lstSingleVariableDeclaration.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final VariableDeclarationFragment node) {
 						lstVariableDeclarationFragment.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final ClassInstanceCreation node) {
 						lstClassInstanceCreation.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final FieldAccess node) {
 						lstFieldAccess.add(node);
 						return super.visit(node);
@@ -120,12 +139,12 @@ public class JavaASTParser {
 						lstIfStatement.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(ForStatement node) {
 						lstForStatement.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(WhileStatement node) {
 						lstWhileStatement.add(node);
 						return super.visit(node);
@@ -135,28 +154,28 @@ public class JavaASTParser {
 						lstInfixExpression.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(SimpleName node) {
 						lstSimpleName.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final ImportDeclaration node) {
 						lstImportDeclaration.add(node);
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final PackageDeclaration node) {
 						pkgDeclaration = node;
 						return super.visit(node);
 					}
-					
+
 					public boolean visit(final AnonymousClassDeclaration node) {
 						//Log.info("AnonymousClassDeclaration");
 						//Log.info(node);
 						return super.visit(node);
 					}
-					
+
 					//Expression ? Expression : Expression
 					public boolean visit(final ConditionalExpression node) {
 						lstConditionalExpression.add(node);
@@ -363,7 +382,7 @@ public class JavaASTParser {
 						return super.visit(node);
 					}
 
-					
+
 
 					public boolean visit(final ConstructorInvocation node) {
 						//Log.info("ConstructorInvocation");
@@ -647,11 +666,15 @@ public class JavaASTParser {
 	public ArrayList<MethodDeclaration> getMethodDeclarations() {
 		return lstMethodDeclaration;
 	}
-	
+
+	public ArrayList<MethodDeclaration> getPublicMethodDeclarations() {
+		return lstPublicMethodDeclaration;
+	}
+
 	public ArrayList<MethodInvocation> getMethodInvocations() {
 		return lstMethodInvocation;
 	}
-	
+
 	public ArrayList<TypeDeclaration> getTypeDeclarations() {
 		return lstTypeDeclaration;
 	}
@@ -660,39 +683,43 @@ public class JavaASTParser {
 		return lstFieldDeclaration;
 	}
 	
+	public ArrayList<FieldDeclaration> getInstanceVariables() {
+		return lstInstanceVariable;
+	}
+
 	public HashMap<String,VariableDeclarationFragment> getMapForFieldDeclarations() {
-		
+
 		HashMap<String,VariableDeclarationFragment> maps = new HashMap<String,VariableDeclarationFragment>();
-		
+
 		for(FieldDeclaration fieldDec:lstFieldDeclaration){
-			
+
 			@SuppressWarnings("unchecked")
 			List<VariableDeclarationFragment> fieldDecFrags = fieldDec.fragments();
-			
+
 			for(VariableDeclarationFragment varDecFrag:fieldDecFrags){
 				maps.put(varDecFrag.getName().toString(), varDecFrag);
 			}
 		}
-		
+
 		return maps;
 	}
 
 	public ArrayList<FieldAccess> getFieldAccesses() {
 		return lstFieldAccess;
 	}
-	
+
 	public ArrayList<IfStatement> getIfStatements() {
 		return lstIfStatement;
 	}
-	
+
 	public ArrayList<ForStatement> getForStatements() {
 		return lstForStatement;
 	}
-	
+
 	public ArrayList<WhileStatement> getWhileStatements() {
 		return lstWhileStatement;
 	}
-	
+
 	public ArrayList<InfixExpression> getInfixExpressions() {
 		return lstInfixExpression;
 	}
@@ -700,7 +727,7 @@ public class JavaASTParser {
 	public ArrayList<SimpleName> getSimpleNames() {
 		return lstSimpleName;
 	}
-	
+
 	public ArrayList<VariableDeclarationFragment> getVariableDeclarationFragments() {
 		return lstVariableDeclarationFragment;
 	}
@@ -708,31 +735,31 @@ public class JavaASTParser {
 	public ArrayList<ClassInstanceCreation> getClassInstanceCreations() {
 		return lstClassInstanceCreation;
 	}
-	
+
 	public ArrayList<SingleVariableDeclaration> getSingleVariableDeclarations() {
 		return lstSingleVariableDeclaration;
 	}
-	
+
 	public ArrayList<ImportDeclaration> getImportDeclarations() {
 		return lstImportDeclaration;
 	}
-	
+
 	public ArrayList<ConditionalExpression> getConditionalExpressions() {
 		return lstConditionalExpression;
 	}
-	
+
 	public PackageDeclaration getPackageDeclaration(){
 		return pkgDeclaration;
 	}
-	
+
 	public String getTypeOfSimpleName(ASTNode astNode,String name) {
-		
+
 		// TODO need to find a target name in a hierarchy but not globally in a file
 		final ArrayList<SingleVariableDeclaration> lstSingleVarDecs = new ArrayList<SingleVariableDeclaration>();
 		final ArrayList<VariableDeclarationStatement> lstVarDecStmts = new ArrayList<VariableDeclarationStatement>();
 		final ArrayList<FieldDeclaration> lstFieldDecs = new ArrayList<FieldDeclaration>();
 		final ArrayList<VariableDeclarationExpression> lstVarDecExps = new ArrayList<VariableDeclarationExpression>();
-		
+
 		astNode.accept(new ASTVisitor() {
 			public boolean visit(SingleVariableDeclaration node) {
 				lstSingleVarDecs.add(node);
@@ -751,8 +778,8 @@ public class JavaASTParser {
 				return super.visit(node);
 			}
 		}
-		);
-		
+				);
+
 		for(SingleVariableDeclaration dec:lstSingleVarDecs){
 			if (dec.getName().toString().equals(name))
 				return dec.getType().toString();
@@ -773,7 +800,7 @@ public class JavaASTParser {
 				}
 			}
 		}
-		
+
 		for(FieldDeclaration dec:lstFieldDecs){
 			for(Object node:dec.fragments()){
 				if(node instanceof VariableDeclarationFragment){
@@ -782,165 +809,165 @@ public class JavaASTParser {
 				}
 			}
 		}
-		
+
 		if(astNode.getParent() == null)
 			return "";
-		
+
 		return getTypeOfSimpleName(astNode.getParent(),name);
 	}
 
 	public ArrayList<SimpleName> getSimpleNames(ASTNode node) {
-		
+
 		final ArrayList<SimpleName> simpleNames = new ArrayList<SimpleName>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(SimpleName node) {
 				simpleNames.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return simpleNames;
 	}
 
 	public ArrayList<QualifiedName> getQualifiedNames(ASTNode exp) {
 		final ArrayList<QualifiedName> qualifiedNames = new ArrayList<QualifiedName>();
-		
+
 		exp.accept(new ASTVisitor() {
-			
+
 			public boolean visit(QualifiedName node) {
 				qualifiedNames.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return qualifiedNames;
 	}
 
 	public ArrayList<MethodInvocation> getMethodInvocations(ASTNode node) {
 		final ArrayList<MethodInvocation> methodInvocations = new ArrayList<MethodInvocation>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(MethodInvocation node) {
 				methodInvocations.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return methodInvocations;
 	}
 
 	public ArrayList<InfixExpression> getInfixExpressions(Expression exp) {
 		final ArrayList<InfixExpression> infixExps = new ArrayList<InfixExpression>();
-		
+
 		exp.accept(new ASTVisitor() {
-			
+
 			public boolean visit(InfixExpression node) {
 				infixExps.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return infixExps;
 	}
 
 	public ArrayList<ArrayAccess> getArrayAccesses(ASTNode node) {
 		final ArrayList<ArrayAccess> arrayAccesses = new ArrayList<ArrayAccess>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(ArrayAccess node) {
 				arrayAccesses.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return arrayAccesses;
 	}
 
 	public ArrayList<ExpressionStatement> getExpressionStatements(ASTNode node) {
 		final ArrayList<ExpressionStatement> expStmts = new ArrayList<ExpressionStatement>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(ExpressionStatement node) {
 				expStmts.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return expStmts;
 	}
 
 	public ArrayList<VariableDeclarationFragment> getVariableDeclarationFragments(ASTNode node) {
 		final ArrayList<VariableDeclarationFragment> varDecFrags = new ArrayList<VariableDeclarationFragment>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(VariableDeclarationFragment node) {
 				varDecFrags.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return varDecFrags;
 	}
 
 	public ArrayList<VariableDeclaration> getVariableDeclaration(ASTNode node) {
 		final ArrayList<VariableDeclaration> varDecs = new ArrayList<VariableDeclaration>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(VariableDeclarationFragment node) {
 				varDecs.add(node);
 				return super.visit(node);
 			}
-			
+
 			public boolean visit(SingleVariableDeclaration node) {
 				varDecs.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return varDecs;
 	}
-	
+
 	public HashMap<String,VariableDeclaration> getMapForVariableDeclaration(ASTNode node) {
 		final HashMap<String, VariableDeclaration> mapVarDecs = new HashMap<String,VariableDeclaration>();
-		
+
 		if(node==null) return mapVarDecs;
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(VariableDeclarationFragment node) {
 				mapVarDecs.put(node.getName().toString(),node);
 				return super.visit(node);
 			}
-			
+
 			public boolean visit(SingleVariableDeclaration node) {
 				mapVarDecs.put(node.getName().toString(),node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return mapVarDecs;
 	}
 
 	public ArrayList<String> getFieldNames() {
-		
+
 		ArrayList<String> fieldNames = new ArrayList<String>();
-		
+
 		for(FieldDeclaration fieldDec:getFieldDeclarations()){
 			@SuppressWarnings("unchecked")
 			List<VariableDeclarationFragment>  varDecFrags = fieldDec.fragments();
@@ -948,154 +975,154 @@ public class JavaASTParser {
 				fieldNames.add(varDecFrag.getName().toString());
 			}
 		}
-		
+
 		return fieldNames;
 	}
 
 	public ArrayList<String> getVariableNames(ASTNode node) {
 		ArrayList<String> localVarNames = new ArrayList<String>();
-		
+
 		ArrayList<VariableDeclarationFragment> varDecFrags = getVariableDeclarationFragments(node);		
 		for(VariableDeclarationFragment verDecFrag:varDecFrags){
 			localVarNames.add(verDecFrag.getName().toString());
 		}
-		
+
 		ArrayList<SingleVariableDeclaration> singleVarDecs = getSingleVariableDeclarations(node);
 		for(SingleVariableDeclaration singleVarDec:singleVarDecs){
 			localVarNames.add(singleVarDec.getName().toString());
 		}
-		
+
 		return localVarNames;
 	}
 
 	private ArrayList<SingleVariableDeclaration> getSingleVariableDeclarations(ASTNode node) {
 		final ArrayList<SingleVariableDeclaration> singleVarDecs = new ArrayList<SingleVariableDeclaration>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(SingleVariableDeclaration node) {
 				singleVarDecs.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return singleVarDecs;
 	}
-	
+
 	public AbstractTypeDeclaration getTypeDeclationOf(ASTNode node) {
-		
+
 		if(node==null) // null can be happen when there is no TypeDeclaration but EnumDeclaration
 			return null;
-		
+
 		if(node.getParent() instanceof AbstractTypeDeclaration)
 			return (AbstractTypeDeclaration) node.getParent();
-		
+
 		return getTypeDeclationOf(node.getParent());
 	}
 
 	public ArrayList<String> getFieldNames(AbstractTypeDeclaration classWhereMethodExists) {
 		ArrayList<String> fieldNames = new ArrayList<String>();
-		
+
 		for(FieldDeclaration fieldDec:getFieldDeclarations()){
-			
+
 			if(!fieldDec.getParent().equals(classWhereMethodExists)) continue;
-			
+
 			@SuppressWarnings("unchecked")
 			List<VariableDeclarationFragment>  varDecFrags = fieldDec.fragments();
 			for(VariableDeclarationFragment varDecFrag:varDecFrags){
 				fieldNames.add(varDecFrag.getName().toString());
 			}
 		}
-		
+
 		return fieldNames;
 	}
 
 	public ArrayList<FieldAccess> getFieldAccesses(ASTNode node) {
 		final ArrayList<FieldAccess> fieldAccesses = new ArrayList<FieldAccess>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(FieldAccess node) {
 				fieldAccesses.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return fieldAccesses;
 	}
 
 	public MethodDeclaration getMethodDec(ASTNode node) {
-		
+
 		if(node.getParent() == null)
 			return null;
-		
+
 		if(node.getParent() instanceof MethodDeclaration){
 			return (MethodDeclaration) node.getParent();
 		}
-		
+
 		return getMethodDec(node.getParent());
 	}
 
 	public TypeDeclaration getTypeDeclaration(ASTNode node) {
-		
+
 		if(node.getParent() == null) return null;
-		
+
 		if(node.getParent() instanceof TypeDeclaration)
 			return (TypeDeclaration) node.getParent();
-		
+
 		return getTypeDeclaration(node.getParent());
 	}
 
 	public MethodDeclaration getMethodDecBelongTo(ASTNode node) {
-		
+
 		if(node.getParent() == null) return null;
-		
+
 		if(node.getParent() instanceof MethodDeclaration)
 			return (MethodDeclaration) node.getParent();
-		
-		
+
+
 		return getMethodDecBelongTo(node.getParent());
 	}
 
 	public ArrayList<ThrowStatement> getThrowStatements(ASTNode node) {
 		final ArrayList<ThrowStatement> throwStatements = new ArrayList<ThrowStatement>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(ThrowStatement node) {
 				throwStatements.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return throwStatements;
 	}
 
 	public ArrayList<Assignment> getAssignments(ASTNode node) {
 		final ArrayList<Assignment> assignments = new ArrayList<Assignment>();
-		
+
 		node.accept(new ASTVisitor() {
-			
+
 			public boolean visit(Assignment node) {
 				assignments.add(node);
 				return super.visit(node);
 			}
-			
+
 		});
-		
+
 		return assignments;
 	}
 
 	public ASTNode getInterface(ASTNode node) {
-		
+
 		if(node == null) return null;
-		
+
 		if(node.getParent() instanceof TypeDeclaration)
 			return node.getParent();
-		
+
 		return getInterface(node.getParent());
 	}
 }
